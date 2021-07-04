@@ -1,0 +1,21 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t akeel26/docker-multi -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true akeel26/docker-multi npm run test -- --coverage
+
+after_success:
+  - docker build -t akeel26/docker-multi-client -f ./client
+  - docker build -t akeel26/docker-multi-nginx -f ./nginx
+  - docker build -t akeel26/docker-multi-server -f ./server
+  - docker build -t akeel26/docker-multi-worker -f ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push akeel26/docker-multi-client
+  - docker push akeel26/docker-multi-nginx
+  - docker push akeel26/docker-multi-server
+  - docker push akeel26/docker-multi-worker
